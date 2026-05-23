@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup /home/haytek/projects to Google Drive
+
+[Service]
+Type=oneshot
+ExecStart=%h/projects/gdrive-sync/backup/gdrive-projects-backup.sh
