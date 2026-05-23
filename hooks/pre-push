@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PROJECT_ROOT="/home/haytek/projects/gdrive-sync"
+BACKUP_SCRIPT="${PROJECT_ROOT}/backup/gdrive-backup-repo.sh"
+
+if [ -x "$BACKUP_SCRIPT" ]; then
+  "$BACKUP_SCRIPT" "$(git rev-parse --show-toplevel)"
+fi

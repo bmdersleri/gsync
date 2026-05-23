@@ -1,6 +1,6 @@
 # Google Drive backup
 
-Bu klasor, `/home/haytek/projects` dizinini Google Drive'a otomatik yedeklemek icin hazir dosyalari icerir.
+Bu klasor, `/home/haytek/projects` altindaki Git repolarini Google Drive'a proje bazli yedeklemek icin hazir dosyalari icerir.
 
 ## 1. Gereken paketler
 
@@ -16,41 +16,66 @@ rclone lsd ismkirauto:
 ```
 
 Bu makinedeki mevcut remote adi `ismkirauto` gorunuyor. Script varsayilan olarak bunu kullanir.
-Farkli bir remote kullanmak isterseniz komut aninda `REMOTE=...` verin.
+Farkli bir remote kullanmak isterseniz komut aninda `REMOTE_BASE=...` verin.
 
-## 3. Script'i calistirilabilir yapin
+## 3. Script'leri calistirilabilir yapin
 
 ```bash
-chmod +x /home/haytek/projects/gdrive-sync/backup/gdrive-projects-backup.sh
+chmod +x /home/haytek/projects/gdrive-sync/backup/*.sh
+chmod +x /home/haytek/projects/gdrive-sync/install/*.sh
 ```
 
-## 4. Manuel test
+## 4. Tek repo manuel test
 
 ```bash
-/home/haytek/projects/gdrive-sync/backup/gdrive-projects-backup.sh
+/home/haytek/projects/gdrive-sync/backup/gdrive-backup-repo.sh /home/haytek/projects/gdrive-sync
 ```
 
 Varsayilan olarak:
 
-- Kaynak klasor: `/home/haytek/projects`
-- Drive hedefi: `ismkirauto:backups/projects`
-- Lokal gecici arsiv klasoru: `~/.cache/project-backups`
+- Kaynak repo: komutta verdiginiz repo yolu veya mevcut calisma dizini
+- Drive hedefi: `ismkirauto:backups/projects/<repo-adi>.tar.zst`
+- Lokal gecici arsiv klasoru: `~/.cache/project-backups/<repo-adi>.tar.zst`
 - Log dosyasi: `~/.local/state/project-backups/rclone.log`
-- Saklanacak lokal arsiv sayisi: `30`
 
-Arsiv sayisini degistirmek icin:
-
-```bash
-KEEP_LAST=15 /home/haytek/projects/gdrive-sync/backup/gdrive-projects-backup.sh
-```
-
-Farkli bir remote veya hedef klasor kullanmak icin:
+## 5. Tum repolari yedekleme
 
 ```bash
-REMOTE="digerremote:backups/projects" /home/haytek/projects/gdrive-sync/backup/gdrive-projects-backup.sh
+/home/haytek/projects/gdrive-sync/backup/gdrive-backup-all-repos.sh
 ```
 
-## 5. systemd kurulumu
+Bu script `/home/haytek/projects` altinda `.git` klasoru olan her repoyu ayri ayri arsivler ve Drive'a yukler.
+Varsayilan olarak `.git`, `.venv`, `venv`, `node_modules`, `dist`, `build`, `.next`, `.nuxt`, `.cache`, `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.tox`, `coverage` ve `.DS_Store` yedek disinda tutulur.
+Calisma sonunda Drive hedefinde repo listesinde olmayan eski `.tar.zst` dosyalari silinir.
+
+Farkli bir remote veya kok klasor kullanmak icin:
+
+```bash
+REMOTE_BASE="digerremote:backups/projects" PROJECTS_DIR="/home/haytek/projects" /home/haytek/projects/gdrive-sync/backup/gdrive-backup-all-repos.sh
+```
+
+## 6. Push sonrasi otomatik yedek
+
+Git istemcisinde gercek bir `post-push` hook'u yoktur. Bu nedenle iki pratik secenek vardir.
+
+### Secenek A: `git gsync-push`
+
+Bu yontem gercekten "push basarili olursa sonra yedekle" davranisini verir:
+
+```bash
+/home/haytek/projects/gdrive-sync/install/install-git-alias.sh
+git gsync-push
+```
+
+### Secenek B: `pre-push` hook
+
+Bu yontem plain `git push` komutunu yakalar ama yedegi push'tan once alir:
+
+```bash
+/home/haytek/projects/gdrive-sync/install/install-pre-push-hooks.sh
+```
+
+## 7. systemd kurulumu
 
 Kullanici unit dizinine kopyalayin:
 
@@ -73,17 +98,3 @@ Oturum kapali olsa da calissin isterseniz:
 ```bash
 loginctl enable-linger haytek
 ```
-
-## 6. Haric tutulan klasorler
-
-Asagidaki agir veya yeniden olusturulabilir dizinler dahil edilmez:
-
-- `.git`
-- `.venv`, `venv`
-- `node_modules`
-- `dist`, `build`
-- `.next`, `.nuxt`
-- `.cache`
-- `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.tox`
-
-Listeyi `gdrive-projects-backup.exclude` dosyasindan degistirebilirsiniz.

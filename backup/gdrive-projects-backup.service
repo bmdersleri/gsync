@@ -1,6 +1,6 @@
 [Unit]
-Description=Backup /home/haytek/projects to Google Drive
+Description=Backup all git repos under /home/haytek/projects to Google Drive
 
 [Service]
 Type=oneshot
-ExecStart=%h/projects/gdrive-sync/backup/gdrive-projects-backup.sh
+ExecStart=%h/projects/gdrive-sync/backup/gdrive-backup-all-repos.sh

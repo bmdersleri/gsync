@@ -1,5 +1,5 @@
 [Unit]
-Description=Run Google Drive backup for /home/haytek/projects
+Description=Run Google Drive backup for all repos under /home/haytek/projects
 
 [Timer]
 OnCalendar=*-*-* 02:30:00
